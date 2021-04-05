@@ -1,12 +1,12 @@
-import React from 'react';
-import Button from '@material-ui/core/Button';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import TextField from '@material-ui/core/TextField';
-import Link from '@material-ui/core/Link';
 import Box from '@material-ui/core/Box';
-import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import Link from '@material-ui/core/Link';
+import { makeStyles } from '@material-ui/core/styles';
+import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import React, { useCallback, useEffect, useState } from 'react';
 
 function Copyright() {
   return (
@@ -41,9 +41,26 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SignIn() {
+export default function SignIn({ localPeerName, setLocalPeerName }) {
   const label = 'Your name';
   const classes = useStyles();
+  const [disabled, setDisabled] = useState(false);
+  const [name, setName] = useState('');
+  const [isComposed, setIsComposed] = useState(false);
+
+  useEffect(() => {
+    const disabled = name === '';
+    setDisabled(disabled);
+  }, [name]);
+
+  const initializeLocalPeer = useCallback((e) => {
+    setLocalPeerName(name);
+    e.preventDefault();
+  },
+  [name, setLocalPeerName]
+  );
+
+  if (localPeerName !== '') return <></>;
 
   return (
     <Container component="main" maxWidth="xs">
@@ -60,15 +77,33 @@ export default function SignIn() {
             fullWidth
             label={label}
             name="name"
+            onChange={(e) => setName(e.target.value)}
+            onCompositionEnd={() => setIsComposed(false)}
+            onCompositionStart={() => setIsComposed(true)}
+            onKeyDown={(e) => {
+              console.log({ e });
+              if (isComposed) return;
+              if (e.target.value === '') return;
+                if (e.key === 'Enter'){
+                  initializeLocalPeer(e);
+                }
+              
+            }}
+            value={name}
             autoFocus
           />
 
           <Button
             type="submit"
             fullWidth
+            disabled={disabled}
             variant="contained"
             color="primary"
             className={classes.submit}
+            onClick={(e) => {
+              initializeLocalPeer(e);
+              e.preventDefault();
+            }}
           >
             Dision
           </Button>
