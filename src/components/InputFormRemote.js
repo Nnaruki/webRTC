@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
@@ -41,9 +41,27 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SignIn({ remotePeerName, setRemotePeerName}) {
+export default function SignIn({ remotePeerName, setRemotePeerName, localPeerName,}) {
   const label = 'Opponent';
   const classes = useStyles();
+  const [disabled, setDisabled] = useState(false);
+  const [name, setName] = useState('');
+  const [isComposed, setIsComposed] = useState(false);
+
+  useEffect(() => {
+    const disabled = name === '';
+    setDisabled(disabled);
+  }, [name]);
+
+  const initializeRemotePeer = useCallback((e) => {
+    setRemotePeerName(name);
+    e.preventDefault();
+  },
+  [name, setRemotePeerName]
+  );
+
+    if (localPeerName === '') return <></>;
+    if (remotePeerName !== '') return <></>;
 
   return (
     <Container component="main" maxWidth="xs">
@@ -60,6 +78,19 @@ export default function SignIn({ remotePeerName, setRemotePeerName}) {
             fullWidth
             label={label}
             name="name"
+            onChange={(e) => setName(e.target.value)}
+            onCompositionEnd={() => setIsComposed(false)}
+            onCompositionStart={() => setIsComposed(true)}
+            value={name}
+            onKeyDown={(e) => {
+              console.log({ e });
+              if (isComposed) return;
+              if (e.target.value === '') return;
+                if (e.key === 'Enter'){
+                  initializeRemotePeer(e);
+                }
+              
+            }}
             autoFocus
           />
 
@@ -68,6 +99,11 @@ export default function SignIn({ remotePeerName, setRemotePeerName}) {
             fullWidth
             variant="contained"
             color="primary"
+            disabled={disabled}
+            onClick={(e) => {
+              initializeRemotePeer(e);
+              e.preventDefault();
+            }}
             className={classes.submit}
           >
             Dision
